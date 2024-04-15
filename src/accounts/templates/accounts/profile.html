@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Profil
+{% endblock %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+    <div class="container text-center">
+        <div class="text-info border border-2 border-dark-subtle rounded-3 bg-light mt-4 p-2 shadow">
+
+        <h2>Mes informations</h2>
+            <hr>
+
+            <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="fw-bold btn btn-outline-info border-2">Sauvegarder</button>
+            </form>
+        </div>
+
+        <div class="text-info border border-2 border-danger-subtle rounded-3 bg-light my-4 p-2 shadow">
+
+            <h2>Mes adresses</h2>
+
+                {% if addresses %}
+                    <div class="row row-cols-1 row-cols-md-3 g-3 bg-light p-2">
+                        {% for address in addresses %}
+                            {% include 'accounts/address.html' %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <hr>
+                    <h5>Aucune adresse enregistrée</h5>
+                {% endif %}
+
+       </div>
+
+    </div>
+
+{% endblock %}

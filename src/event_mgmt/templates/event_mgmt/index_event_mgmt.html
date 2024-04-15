@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Événements
+{% endblock %}
+
+{% block content %}
+
+    <div class="container text-center">
+
+        <div class="text-info border border-2 border-dark-subtle rounded-3 bg-light mt-4 p-2 shadow">
+                <h2 class="text-center">Tous les événements</h2>
+        </div>
+
+        <br>
+
+        <div class="row row-cols-1 row-cols-md-3 border border-2 border-danger-subtle rounded-3 bg-light my-4 p-4
+         g-3 shadow">
+
+        {% comment %} On boucle sur tous les événements enregistrés dans la base et on les affiche dans des cartes
+            Bootstrap  {% endcomment %}
+        {% for event in events %}
+
+            <div class="col">
+                <div class="card border border-danger-subtle" style="h-100">
+                    <img src="{{ event.eventpic_url }}" alt="{{ event.eventName }}" class="card-img-top">
+                      <div class="card-body">
+                        <p class="text-info card-text fw-bold">{{ event.eventName }}</p>
+                        <hr>
+                        <p class="card-text">{{ event.eventPlace }}</p>
+                        <a href="{{ event.get_absolute_url }}" class="fw-bold btn btn-outline-info border-2">
+                            Voir les épreuves</a>
+                      </div>
+                </div>
+            </div>
+
+        {% endfor %}
+
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Contact{% endblock %}
+
+{% block content %}
+
+    <div class="container rounded mt-5">
+        <div class="row mb-5 pb-2 justify-content-center">
+            <div class="col-md-12 col-lg-7 col-xl-6 text-center text-info border border-2 border-dark-subtle
+             rounded-3 bg-light pb-2 shadow">
+                <h1>Contact</h1>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <input type="submit" value="Envoyer" class="fw-bold btn btn-outline-info border-2">
+                </form>
+                {% if messages %}
+                    {% for message in messages %}
+                        <p class="fw-bold text-success mt-2">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

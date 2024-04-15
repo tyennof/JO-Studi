@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <div class="email-container">
+            <div class="header">
+                <h1>Ce mail vous a été envoyé par la billetterie des Jeux Olympiques de Paris 2024</h1>
+            </div>
+            <div class="content">
+
+                <p>Bonjour {{ eticket.user.first_name }} {{ eticket.user.last_name }},</p>
+                <hr>
+                <p>Nous vous confirmons votre réservation pour l'{{ eticket.event.eventName }}.</p>
+                <hr>
+                <p>Celle-ci se déroulera le {{ eticket.event.eventDateHour }} à {{ eticket.event.eventPlace }}.</p>
+                <hr>
+                <p>Votre offre comprend {{ eticket.offer }} place(s).</p>
+
+            </div>
+
+        </div>
+    </body>
+</html>

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ event.eventName }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container text-center">
+
+        <div class="text-info border border-2 border-dark-subtle rounded-3 bg-light mt-4 p-2 shadow">
+            <h2 class="text-center">{{ event.eventName }}</h2>
+        </div>
+
+    <div class="row row-cols-1 row-cols-md-3 border border-2 border-danger-subtle rounded-3 bg-light my-4 p-4 g-3 shadow">
+
+        <div class="col">
+            <div class="card border border-danger-subtle">
+                <img src="{{ event.eventpic_url }}" class="card-img-top" alt="...">
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card text-center border border-danger-subtle">
+              <div class="card-header text-info fw-bold">Infos sur l'épreuve</div>
+              <div class="card-body">
+                <h5 class="card-title">{{ event.eventPlace }}</h5>
+                  {% if user.is_authenticated %}
+                    <hr>
+                    <a href="{% url 'add-to-cart' event.eventSlug %}" class="btn btn-info">Réserver</a>
+                    {% if user.cart %}
+                        <a href="{% url 'cart' %}" class="fw-bold btn btn-outline-info">
+                            voir mon panier ({{ user.cart.orders.count }})</a>
+                    {% endif %}
+                  {% else %}
+                    <hr>
+                    <a href="{% url 'login' %}" class="btn btn-outline-info">Connectez-vous ou inscrivez-vous pour réserver</a>
+                  {% endif %}
+                  <hr>
+                <p class="card-text p-1">Cet événement se déroulera le : </p>
+                <p class="card-text">{{ event.eventDateHour }}</p>
+                <p class="card-text">{{ event.eventSeatAvailable }} places disponibles.</p>
+              </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card border border-danger-subtle">
+                <div class="card-body">
+                    {{ event.eventDescription }}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+        <a class="btn btn-warning text-center m-4" href="{% url 'index-event-mgmt' %}" role="button">Retour aux événements</a>
+
+    </div>
+
+{% endblock %}
+

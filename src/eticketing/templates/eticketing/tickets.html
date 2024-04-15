@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Billets
+{% endblock %}
+
+{% block content %}
+
+    <div class="container text-center">
+
+        <div class="text-info border border-2 border-dark-subtle rounded-3 bg-light m-4 p-2 shadow">
+            <h2>Mes billets</h2>
+        </div>
+        <br>
+
+        {% if tickets %}
+
+        <div class="row row-cols-1 row-cols-md-3 text-info border border-2 border-danger-subtle rounded-3
+         bg-light mb-4 p-3 g-3 shadow">
+            {% for ticket in tickets %}
+
+                <div class="col">
+                    <div class="card text-center border border-danger-subtle">
+                      <img src="{{ ticket.qr_code.url }}" alt="{{ ticket.event.eventName }}"
+                           class="card-img-top d-block mx-auto"
+                           style="max-width: 200px;">
+                      <div class="card-body">
+                        <p class="card-text fw-bold text-info">{{ ticket.event.eventName }}</p>
+                        <hr>
+                        <p class="card-text fw-bold">{{ ticket.event.eventPlace }}</p>
+                        <hr>
+                        <p class="card-text fw-bold">Billet pour {{ ticket.offer }} place(s)</p>
+                        <hr>
+                        <p class="card-text fw-bold">{{ ticket.event.eventDateHour|date:"l d F Y à H\Hi" }}</p>
+                      </div>
+                    </div>
+                </div>
+
+            {% endfor %}
+        {% else %}
+
+                <div class="text-info border border-info-subtle rounded-3 bg-light mb-4 p-3 shadow">
+                    <h4>Vous n'avez pas encore acheté de billet.</h4>
+                </div>
+
+        {% endif %}
+
+        </div>
+    </div>
+
+{% endblock %}
+

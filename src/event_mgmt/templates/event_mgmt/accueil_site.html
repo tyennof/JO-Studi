@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Accueil
+{% endblock %}
+
+{% block content %}
+
+    <div class="container text-center">
+
+        <div class="text-primary border border-2 border-dark-subtle rounded-3 bg-light m-4 p-2 shadow">
+            <h2 class="text-center">Billetterie des Jeux Olympiques de Paris 2024</h2>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-3 border border-2 border-danger-subtle rounded-3 bg-light mb-4 mt-2 p-4 g-3 shadow">
+
+              <div class="col">
+                <div class="card border border-danger-subtle" style="h-100">
+                  <img src="{% static 'picture/football.jpg' %}"
+                       class="card-img-top"
+                       alt="Vue à l'intérieur d'un stade accueillant des matchs pour les épreuves de football des JO">
+                  <div class="card-body">
+                    <h5 class="card-title text-info">Football</h5>
+                    <hr>
+                    <p class="card-text">Le football étant le sport le plus populaire au monde, il a naturellement sa
+                        place parmi les Jeux Olympiques depuis (presque) le début de leur création.</p>
+
+                  </div>
+                </div>
+              </div>
+
+               <div class="col">
+                <div class="card border border-danger-subtle" style="h-100">
+                  <img src="{% static 'picture/natation_index2.jpg' %}"
+                       class="card-img-top"
+                       alt="Un crawleur vu de profil dans son couloir dans le bassin olympique">
+                  <div class="card-body">
+                    <h5 class="card-title text-info">Natation</h5>
+                    <hr>
+                    <p class="card-text">Seules deux des quatre disciplines étaient dès le départ présentes aux JO de
+                        1896. Quant aux femmes, elles ne peuvent y concourir qu'à partir de 1912.</p>
+                  </div>
+                </div>
+              </div>
+
+               <div class="col">
+                <div class="card border border border-danger-subtle" style="h-100">
+                  <img src="{% static 'picture/aviron_index.jpg' %}" class="card-img-top" alt="...">
+                  <div class="card-body">
+                    <h5 class="card-title text-info">Aviron</h5>
+                    <hr>
+                    <p class="card-text">Discipline également présente depuis l'apparation des JO modernes en 1896,
+                        l'aviron trouve ses origines en Égypte.</p>
+                  </div>
+                </div>
+              </div>
+        </div>
+
+        <div class="text-info border border-2 border-warning-subtle rounded-3 bg-light mt-4 mb-4 pt-3 shadow">
+             <p class="text-primary">Envie d'en découvrir plus ?
+                <a href="{% url 'index-event-mgmt' %}" class="fw-bold btn btn-outline-primary">Voir toutes les épreuves</a></p>
+        </div>
+
+    </div>
+
+{% endblock %}
+
