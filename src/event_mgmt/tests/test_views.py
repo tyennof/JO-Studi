@@ -4,8 +4,10 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import CustomUser
+from eticketing.models import Eticket
 from event_mgmt.forms import OrderForm
 from event_mgmt.models import Event, Cart, Order
+from event_mgmt.views import complete_order
 
 
 class EventTest(TestCase):
@@ -226,6 +228,123 @@ class UpdateQuantitiesViewTest(TestCase):
         self.event.delete()
 
 
+class DeleteCartViewTest(TestCase):
+
+    def setUp(self):
+        # Création d'un utilisateur
+        self.user = User.objects.create_user(email='test@example.com', password='password')
+
+        # Connexion de l'utilisateur
+        self.client.login(email='test@example.com', password='password')
+
+        # Création d'un évènement pour les commandes
+        self.event = Event.objects.create(eventName="Event Test")
+
+        # Création d'un panier pour l'utilisateur
+        self.cart = Cart.objects.create(user=self.user)
+
+        # Ajout d'une commande au panier
+        self.order = Order.objects.create(user=self.user, event=self.event, quantity=2)
+        self.cart.orders.add(self.order)
+
+    def test_delete_cart(self):
+        # Vérification si panier existe avant la requête de suppression
+        self.assertIsNotNone(Cart.objects.filter(user=self.user).first())
+
+        # Faire une requête POST pour simuler la suppression
+        response = self.client.post(reverse('delete-cart'))
+
+        # Vérifier que le panier a été supprimé
+        self.assertIsNone(Cart.objects.filter(user=self.user).first())
+
+        # Vérifier que la commande associée a également été supprimée (selon la logique de votre modèle)
+        self.assertEqual(Order.objects.filter(user=self.user).count(), 0)
+
+        # Vérifier la redirection après la suppression
+        self.assertRedirects(response, reverse('index-event-mgmt'))
+
+
+class CartViewTestCase(TestCase):
+    def setUp(self):
+        # Création d'un utilisateur
+        self.user = User.objects.create_user(email="user@example.com", password="password")
+
+        # Création d'un événement
+        self.event = Event.objects.create(
+            eventName="Concert",
+            eventDateHour="2024-05-01 20:00:00",
+            eventSeatAvailable=100,
+            eventPlace="Concert Hall",
+            eventDescription="A great concert."
+        )
+
+        # Connexion de l'utilisateur
+        self.client.login(email="user@example.com", password="password")
+
+    def test_add_to_cart(self):
+        # Récupération du slug de l'événement créé
+        slug = self.event.eventSlug
+
+        # Exécution de la vue add_to_cart
+        response = self.client.get(reverse("add-to-cart", kwargs={"slug": slug}))
+
+        # Vérification que l'utilisateur est redirigé vers la page de détail de l'événement
+        self.assertRedirects(response, reverse("event-detail", kwargs={"slug": slug}))
+
+        # Vérification que l'ordre a été créé pour cet utilisateur et cet événement
+        order_exists = Order.objects.filter(user=self.user, event=self.event).exists()
+        self.assertTrue(order_exists)
+
+
+class CheckoutSuccessViewTests(TestCase):
+
+    def test_checkout_success_uses_correct_template(self):
+
+        response = self.client.get(reverse('checkout-success'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'event_mgmt/success.html')
+
+
+class CompleteOrderTestCase(TestCase):
+    def setUp(self):
+        # Création de l'utilisateur et de son panier
+        self.user = CustomUser.objects.create(email="user@example.com", password="password")
+        self.cart = Cart.objects.create(user=self.user)
+
+        # Création de l'événement
+        self.event = Event.objects.create(eventName="Concert", eventSeatAvailable=100)
+
+        # Ajout d'une commande au panier
+        self.order = Order.objects.create(user=self.user, event=self.event, quantity=2)
+        self.cart.orders.add(self.order)
+
+    def test_complete_order(self):
+        # Données simulées pour le processus de commande
+        data = {'customer': 'stripe_customer_id'}
+
+        # Exécution de la fonction de vue
+        response = complete_order(data, self.user)
+
+        # Vérifications HTTP et d'état des objets
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.event.refresh_from_db()
+
+        # Vérifier que l'identifiant stripe a été mis à jour
+        self.assertEqual(self.user.stripe_id, 'stripe_customer_id')
+
+        # Vérifier que les sièges disponibles de l'événement ont été déduits
+        self.assertEqual(self.event.eventSeatAvailable, 98)
+
+        # Vérifier que les tickets et les emails sont correctement créés et envoyés
+        self.assertEqual(Eticket.objects.count(), 1)
+        eticket = Eticket.objects.first()
+        self.assertEqual(eticket.user, self.user)
+        self.assertEqual(eticket.event, self.event)
+        self.assertEqual(eticket.offer, 2)
+
+        # Vérifier que le panier est vide et l'utilisateur n'a plus de panier
+        self.assertFalse(Cart.objects.filter(user=self.user).exists())
 
 
 
