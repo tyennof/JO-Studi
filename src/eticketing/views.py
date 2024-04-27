@@ -1,8 +1,5 @@
 from django.shortcuts import render
 
-from eticketing.models import Eticket
-from event_mgmt.models import Order
-
 
 def tickets(request):
     # Récupération dans une variable "tickets" de tous les etickets liés à l'utilisateur
