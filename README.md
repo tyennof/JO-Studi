@@ -1,5 +1,6 @@
 
-# Billetterie des JO ( Projet Bachelor Python - École en ligne Studi ) 
+# Billetterie des Jeux Olympiques
+# ( Projet Bachelor Python - École en ligne Studi ) 
 
 Ce site a été créé en Django dans le cadre d'un projet d'étude d'un Bachelor de développeur d'applications Python pour l'école en ligne Studi.
 
