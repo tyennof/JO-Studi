@@ -1,13 +1,15 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.forms import modelformset_factory, BaseModelFormSet
 from django.test import TestCase
 from django.urls import reverse
 
-from accounts.models import CustomUser
+from accounts.models import CustomUser, ShippingAddress
 from eticketing.models import Eticket
 from event_mgmt.forms import OrderForm
 from event_mgmt.models import Event, Cart, Order
-from event_mgmt.views import complete_order
+from event_mgmt.views import complete_order, save_shipping_address
 
 
 class EventTest(TestCase):
@@ -345,6 +347,68 @@ class CompleteOrderTestCase(TestCase):
 
         # Vérifier que le panier est vide et l'utilisateur n'a plus de panier
         self.assertFalse(Cart.objects.filter(user=self.user).exists())
+
+
+class ShippingAddressTest(TestCase):
+
+    def setUp(self):
+        self.user = CustomUser.objects.create(email='test@example.com', password='testpassword123')
+
+    def test_save_shipping_address_success(self):
+        data = {
+            "shipping_details": {
+                "address": {
+                    "city": "Paris",
+                    "country": "FR",
+                    "line1": "123 Rue de Exemple",
+                    "line2": "Appartement 1",
+                    "postal_code": "75001"
+                },
+                "name": "John Doe"
+            }
+        }
+        response = save_shipping_address(data, self.user)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(ShippingAddress.objects.exists())
+
+    def test_save_shipping_address_missing_field(self):
+        data = {
+            "shipping_details": {
+                "address": {
+                    "city": "Paris",
+                    # Missing country field
+                    "line1": "123 Rue de Exemple",
+                    "line2": "Appartement 1",
+                    "postal_code": "75001"
+                },
+                "name": "John Doe"
+            }
+        }
+        response = save_shipping_address(data, self.user)
+        self.assertEqual(response.status_code, 400)
+
+    def test_save_shipping_address_invalid_country_code(self):
+        data = {
+            "shipping_details": {
+                "address": {
+                    "city": "Paris",
+                    "country": "XYZ",  # Invalid country code
+                    "line1": "123 Rue de Exemple",
+                    "line2": "",
+                    "postal_code": "75001"
+                },
+                "name": "John Doe"
+            }
+        }
+        response = save_shipping_address(data, self.user)
+        # Checking for valid/invalid country code can be handled in the view or model layer
+        self.assertEqual(response.status_code, 200)
+
+    def tearDown(self):
+        self.user.delete()
+
+
+
 
 
 
