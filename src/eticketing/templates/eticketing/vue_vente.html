@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container text-center">
+
+    <div class="text-info border border-2 border-dark-subtle rounded-3 bg-light m-4 p-2 shadow">
+            <h2>Dashboard Vente</h2>
+        </div>
+        <br>
+
+    <table class="table table-striped table-hover table-bordered ">
+        <thead>
+            <tr>
+                <th>Événement</th>
+                <th>Offre</th>
+                <th>Nombre de billets vendus</th>
+                <th>Nombre de places restantes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event_data in event_sales_data %}
+                {% for offer in event_data.offers %}
+                    <tr>
+                        <td>{{ event_data.event.eventName }}</td>
+
+                        {% if offer.offer == 1 %}
+                            <td>Solo</td>
+                        {% elif offer.offer == 2 %}
+                            <td>Duo</td>
+                        {% elif offer.offer == 4 %}
+                            <td>Familiale</td>
+                        {% endif %}
+
+                        <td>{{ offer.total }}</td>
+                        <td>{{ event_data.event.eventSeatAvailable }}</td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}

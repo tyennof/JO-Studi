@@ -6,7 +6,7 @@ from accounts.views import signup, logout_user, login_user,UpdateProfile, set_de
     contact
 from event_mgmt.views import index_event_mgmt, event_detail, add_to_cart, cart, delete_cart, \
     create_checkout_session, checkout_success, stripe_webhook, update_quantities, accueil_site, mention, cgv
-from eticketing.views import tickets
+from eticketing.views import tickets, SalesByOfferView
 
 from OGticketing import settings
 
@@ -36,5 +36,6 @@ urlpatterns = [
     path('cart/create_checkout_session', create_checkout_session, name='create-checkout-session'),
 
     path('tickets', tickets, name='tickets'),
+    path('ventes_par_offre/', SalesByOfferView.as_view(), name='ventes-par-offre'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

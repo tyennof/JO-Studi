@@ -96,6 +96,7 @@
       <li class="nav-item"><a href="{% url 'contact' %}" class="nav-link px-2 text-danger">Contact</a></li>
       {% if request.user.is_superuser %}
         <li class="nav-item"><a href="{% url 'admin:index' %}" class="nav-link px-2 text-warning">Administration</a></li>
+        <li class="nav-item"><a href="{% url 'ventes-par-offre' %}" class="nav-link px-2 text-success">Ventes</a></li>
       {% endif %}
     </ul>
     <p class="text-center text-success">&copy; 2024 O-G_Studi</p>
