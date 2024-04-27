@@ -1,11 +1,10 @@
-from email.headerregistry import Address
-from multiprocessing.connection import Client
-
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages import get_messages
+from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
+
+from accounts.forms import ContactForm
 
 
 class LoginUserViewTests(TestCase):
@@ -145,9 +144,57 @@ class SignupViewTests(TestCase):
         self.assertIn('password2', response.context['form'].errors)
 
 
+User = get_user_model()
 
 
+class ContactViewTest(TestCase):
 
+    def setUp(self):
+        self.user = User.objects.create_user(email='user@example.com', password='testpassword')
+        self.contact_url = reverse('contact')
 
+    def test_contact_view_with_authenticated_user_get_request(self):
+        self.client.login(email='user@example.com', password='testpassword')
+        response = self.client.get(self.contact_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], ContactForm)
+        self.assertEqual(response.context['form'].initial['email'], self.user.email)
+
+    def test_contact_view_with_unauthenticated_user_get_request(self):
+        response = self.client.get(self.contact_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], ContactForm)
+        self.assertNotIn('email', response.context['form'].initial)
+
+    def test_contact_form_post_with_valid_data(self):
+        self.client.login(email='user@example.com', password='testpassword')
+        form_data = {
+            'email': 'user@example.com',
+            'subject': 'Test Subject',
+            'text': 'Test message'
+        }
+        response = self.client.post(self.contact_url, form_data)
+        self.assertEqual(len(mail.outbox), 2)  # 2 messages devraient être envoyés
+        self.assertRedirects(response, reverse('contact'))
+
+        # Vérification si les messages sont ajoutés dans la session User
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]),
+                         'Le message a été envoyé. Si vous ne recevez pas l\'email de confirmation,'
+                         ' veuillez vérifier vos spams ou renvoyer votre message en vérifiant bien l\'email'
+                         ' renseigné s\'il vous plaît.')
+
+    def test_contact_form_post_with_invalid_data(self):
+        self.client.login(email='user@example.com', password='testpassword')
+        form_data = {
+            'email': 'user',  # Mail invalide
+            'subject': '',
+            'text': 'Test message'
+        }
+        response = self.client.post(self.contact_url, form_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['form'].is_valid())
+        self.assertEqual(len(mail.outbox), 0)
 
 

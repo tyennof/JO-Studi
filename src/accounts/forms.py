@@ -3,8 +3,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import PasswordInput
 
-from accounts.models import CustomUser
-
 
 class ContactForm(forms.Form):
     email = forms.EmailField(label="Email")
