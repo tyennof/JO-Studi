@@ -7,8 +7,13 @@
 
 
 
-## 🔗 Link
-[![portfolio](https://img.shields.io/badge/Lien_vers_le_site_sur_PythonAnywhere-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://steveparis.pythonanywhere.com/)
+## 🔗 Le lien vers le site
+[![portfolio](https://img.shields.io/badge/Lien_vers_le_site_sur_PythonAnywhere-000?style=for-the-badge&logo=ko-fi&logoColor=green)](https://steveparis.pythonanywhere.com/)
+
+## 🔗 Le lien vers le site de Studi
+[![portfolio](https://img.shields.io/badge/Lien_vers_l'école-000?style=for-the-badge&logo=ko-fi&logoColor=yellow)](https://www.studi.com/fr)
+
+
 
 
 
