@@ -14,25 +14,29 @@ def tickets(request):
 
 
 class SalesByOfferView(ListView):
-    model = Event
+    # Configuration de base de la vue
+    model = Event # Spécifie le modèle de données à utiliser
     template_name = 'eticketing/vue_vente.html'
-    context_object_name = 'event_list'
+    context_object_name = 'event_list' # Nom de la variable contexte à utiliser dans le template
 
     def get_queryset(self):
+        # Méthode qui récupère les données à afficher par la vue
         return Event.objects.annotate(
-            total_sales=Count('eticket')
-        ).order_by('-total_sales')
+            total_sales=Count('eticket') # Ajoute un champ calculé qui compte le nb de billets associés à chq événement
+        ).order_by('-total_sales') # Ordonne les événements par nb total de billets vendus, du plus grand au plus petit
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        event_sales_data = []
+        # Cette méthode permet d'ajouter des données supplémentaires au contexte du template
+        context = super().get_context_data(**kwargs) # Appel à la méthode parente pour obtenir le contexte de base
+        event_sales_data = [] # Création d'une liste pour stocker les données de vente par offre pour chaque événement
         for event in context['event_list']:
             offers = Eticket.objects.filter(event=event).values('offer').annotate(total=Count('id')).order_by('offer')
+            # Récupération et regroupement des billets par 'offer', comptage et tri par offre pour chaque événement
             event_sales_data.append({
                 'event': event,
                 'offers': offers
             })
-        context['event_sales_data'] = event_sales_data
+        context['event_sales_data'] = event_sales_data # Ajout de la liste complète des données de vente au contexte
         return context
 
 
