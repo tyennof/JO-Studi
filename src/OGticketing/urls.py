@@ -2,8 +2,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from accounts.views import signup, logout_user, login_user,UpdateProfile, set_default_shipping_address, delete_address, \
-    contact
+from accounts.views import signup, logout_user, login_user, UpdateProfile, set_default_shipping_address, delete_address, \
+    contact, activate
 from event_mgmt.views import index_event_mgmt, event_detail, add_to_cart, cart, delete_cart, \
     create_checkout_session, checkout_success, stripe_webhook, update_quantities, accueil_site, mention, cgv
 from eticketing.views import tickets, SalesByOfferView
@@ -18,6 +18,7 @@ urlpatterns = [
     path('cgv', cgv, name='cgv'),
 
     path('signup/', signup, name='signup'),
+    path('activate/<uidb64>/<token>', activate, name='activate'),
     path('logout/', logout_user, name='logout'),
     path('login/', login_user, name='login'),
 
