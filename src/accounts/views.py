@@ -4,6 +4,8 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView, PasswordResetView, \
+    PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
@@ -145,3 +147,39 @@ def contact(request):
         form = ContactForm(initial={"email": user.email}) if user.is_authenticated else ContactForm()
 
     return render(request, "accounts/contact.html", context={"form": form})
+
+
+# Changement de MDP initié par user
+class UserChangePasswordView(PasswordChangeView):
+    template_name = "password/change-password.html"
+    success_url = reverse_lazy("change-done")
+
+
+class UserChangePasswordDoneView(PasswordChangeDoneView):
+    template_name = "password/change-password-done.html"
+    # extra_context = {"coucou": "Coucou l'extra context !"}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+# Maintenant on reset
+class UserPasswordResetView(PasswordResetView):
+    template_name = "password/reset-password.html"
+    email_template_name = "email/reset-password-email.html"
+    success_url = reverse_lazy("reset-done")
+
+
+class UserPasswordResetDoneView(PasswordResetDoneView):
+    template_name = "password/reset-password-done.html"
+
+
+class UserPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = "password/reset-password-confirm.html"
+    success_url = reverse_lazy("reset-complete")
+    # token_generator =
+
+
+class UserPasswordCompleteView(PasswordResetCompleteView):
+    template_name = "password/reset-password-complete.html"
