@@ -32,9 +32,15 @@ Connexion
             </form>
         </div>
 
-        <div class="text-info border border-2 border-warning-subtle rounded-3 bg-light mt-4 mb-4 pt-3 shadow">
+        <div class="row row-cols-1 row-cols-md-3 text-info border border-2 border-warning-subtle rounded-3 bg-light mb-4 pt-3 shadow">
             <p class="text-primary">(Pas encore inscrit ?)
                 <a href="{% url 'signup' %}" class="btn btn-outline-primary">Créer un compte</a></p>
+
+            <p class="text-primary">(Oubli du mot de passe ?)
+                <a href="{% url 'reset' %}" class="btn btn-outline-primary">Reset mon mot de passe</a></p>
+
+            <p class="text-primary">
+                <a href="{% url 'index-event-mgmt' %}" class="btn btn-outline-primary">Retour aux événements</a></p>
         </div>
 
     </div>
