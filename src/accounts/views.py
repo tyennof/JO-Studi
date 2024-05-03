@@ -1,15 +1,23 @@
+from smtplib import SMTPException
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView, PasswordResetView, \
+    PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 from django.views.generic import UpdateView
 
 from OGticketing.settings import env
 from accounts.forms import ContactForm, SignUpForm, SignInForm
 from accounts.models import ShippingAddress
+from accounts.verification.email_verification_token_generator import email_verification_token
+from accounts.verification.registration import send_email_verification
 
 # Récupération du modèle User nécessaire à la création d'un user dans la fonction signup
 User = get_user_model()
@@ -20,14 +28,37 @@ def signup(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+            try:
+                send_email_verification(request, user)
+            except SMTPException:
+                pass
             return redirect('accueil-site')
+
     else:
         form = SignUpForm()
 
     return render(request, 'accounts/signup.html', context={"form": form})
+
+
+def activate(request, uidb64, token):
+    user = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = user.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, user.DoesNotExist):
+        user = None
+    if user is not None and email_verification_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.add_message(request, messages.INFO, "Votre compte est désormait actif, vous pouvez vous connecter")
+        return redirect("accueil-site")
+    else:
+        messages.add_message(request, messages.INFO,
+                             "Vous pouvez nous contacter par email, nous résoudrons le problème")
+        return redirect("accueil-site")
 
 
 def login_user(request):
@@ -116,3 +147,39 @@ def contact(request):
         form = ContactForm(initial={"email": user.email}) if user.is_authenticated else ContactForm()
 
     return render(request, "accounts/contact.html", context={"form": form})
+
+
+# Changement de MDP initié par user
+class UserChangePasswordView(PasswordChangeView):
+    template_name = "password/change-password.html"
+    success_url = reverse_lazy("change-done")
+
+
+class UserChangePasswordDoneView(PasswordChangeDoneView):
+    template_name = "password/change-password-done.html"
+    # extra_context = {"coucou": "Coucou l'extra context !"}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+# Maintenant on reset
+class UserPasswordResetView(PasswordResetView):
+    template_name = "password/reset-password.html"
+    email_template_name = "email/reset-password-email.html"
+    success_url = reverse_lazy("reset-done")
+
+
+class UserPasswordResetDoneView(PasswordResetDoneView):
+    template_name = "password/reset-password-done.html"
+
+
+class UserPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = "password/reset-password-confirm.html"
+    success_url = reverse_lazy("reset-complete")
+    # token_generator =
+
+
+class UserPasswordCompleteView(PasswordResetCompleteView):
+    template_name = "password/reset-password-complete.html"

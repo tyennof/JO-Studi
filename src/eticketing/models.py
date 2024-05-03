@@ -1,12 +1,17 @@
 import uuid
 from io import BytesIO
 
+from cryptography.fernet import Fernet
+
 import qrcode
 from django.core.files.base import ContentFile
 from django.db import models
 
 from accounts.models import CustomUser
 from event_mgmt.models import Event
+
+key = Fernet.generate_key()
+cipher_suite = Fernet(key)
 
 
 class Eticket(models.Model):
@@ -26,7 +31,9 @@ class Eticket(models.Model):
 
     def qr_code_maker(self):
         data = [self.user.email, str(self.ticket_id), self.event.eventName, str(self.offer)]
-        qr_img = qrcode.make(data)
+        data_string = ",".join(data)
+        encrypted_data = cipher_suite.encrypt(data_string.encode())
+        qr_img = qrcode.make(encrypted_data)
         byte_arr = BytesIO()
         qr_img.save(byte_arr, format='PNG')
         byte_arr.seek(0)
