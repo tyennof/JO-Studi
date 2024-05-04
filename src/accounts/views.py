@@ -53,7 +53,7 @@ def activate(request, uidb64, token):
     if user is not None and email_verification_token.check_token(user, token):
         user.is_active = True
         user.save()
-        messages.add_message(request, messages.INFO, "Votre compte est désormait actif, vous pouvez vous connecter")
+        messages.add_message(request, messages.INFO, "Votre compte est désormais actif, vous pouvez vous connecter")
         return redirect("accueil-site")
     else:
         messages.add_message(request, messages.INFO,
@@ -164,7 +164,7 @@ class UserChangePasswordDoneView(PasswordChangeDoneView):
         return context
 
 
-# Maintenant on reset
+# Reset du password
 class UserPasswordResetView(PasswordResetView):
     template_name = "password/reset-password.html"
     email_template_name = "email/reset-password-email.html"
