@@ -3,8 +3,12 @@ from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from accounts.forms import ContactForm
+from accounts.models import CustomUser
+from accounts.verification.email_verification_token_generator import email_verification_token
 
 
 class LoginUserViewTests(TestCase):
@@ -198,3 +202,39 @@ class ContactViewTest(TestCase):
         self.assertEqual(len(mail.outbox), 0)
 
 
+class UserActivationTestCase(TestCase):
+    def setUp(self):
+        # Créer un utilisateur mais ne pas l'activer
+        self.user = CustomUser.objects.create_user(email="test@example.com", password="testpassword123")
+        self.user.is_active = False
+        self.user.save()
+
+        # Encoder l'ID de l'utilisateur et générer un token
+        self.uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        self.token = email_verification_token.make_token(self.user)
+
+    def test_activate_success(self):
+        # Accéder à la vue avec le bon UID et token
+        response = self.client.get(reverse('activate', kwargs={'uidb64': self.uid, 'token': self.token}))
+        self.user.refresh_from_db()
+
+        # Vérifier que l'utilisateur est activé
+        self.assertTrue(self.user.is_active)
+        # Vérifier la redirection vers la page d'accueil
+        self.assertRedirects(response, reverse('accueil-site'))
+        # Récupérer les messages à partir de la réponse
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(str(messages[0]), "Votre compte est désormais actif, vous pouvez vous connecter")
+
+    def test_activate_failure(self):
+        # Accéder à la vue avec un mauvais token
+        response = self.client.get(reverse('activate', kwargs={'uidb64': self.uid, 'token': 'wrong-token'}))
+        self.user.refresh_from_db()
+
+        # Vérifier que l'utilisateur n'est pas activé
+        self.assertFalse(self.user.is_active)
+        # Vérifier la redirection vers la page d'accueil
+        self.assertRedirects(response, reverse('accueil-site'))
+        # Vérifier le message d'erreur
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(str(messages[0]), "Vous pouvez nous contacter par email, nous résoudrons le problème")
