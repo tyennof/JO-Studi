@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const endDate = new Date("July 26, 2024 20:24:00").getTime(); // Définissez ici la date de fin du compte à rebours
+    const endDate = new Date("July 26, 2024 20:24:00").getTime();
 
     const timer = setInterval(function() {
         let now = new Date().getTime();
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (distance < 0) {
             clearInterval(timer);
-            document.getElementById("countdown").innerHTML = "EXPIRÉ";
+            document.getElementById("countdown").innerHTML = "C'est parti pour la fête !";
         }
     }, 1000);
 });
