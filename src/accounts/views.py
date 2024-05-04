@@ -164,7 +164,7 @@ class UserChangePasswordDoneView(PasswordChangeDoneView):
         return context
 
 
-# Maintenant on reset
+# Reset du password
 class UserPasswordResetView(PasswordResetView):
     template_name = "password/reset-password.html"
     email_template_name = "email/reset-password-email.html"
