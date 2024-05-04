@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}
-Profil
-{% endblock %}
+{% block title %} Profil {% endblock %}
 
 {% load crispy_forms_tags %}
 
@@ -11,7 +9,10 @@ Profil
     <div class="container text-center">
         <div class="text-info border border-2 border-dark-subtle rounded-3 bg-light mt-4 p-2 shadow">
 
-        <h2>Mes informations</h2>
+            <div><span class="h2">Mes informations  </span>
+            <span class="fw-normal text-primary">( connecté en tant que {{ request.user.email|upper }} )</span>
+            </div>
+
             <hr>
 
             <form method="POST">
@@ -25,7 +26,7 @@ Profil
 
             <h2>Mon mot de passe</h2>
             <hr>
-            <a href="{% url 'change-password' %}" class="fw-bold btn btn-outline-info border-2">Je souhaite modifier mon mot de passe</a>
+            <a href="{% url 'change-password' %}" class="fw-bold btn btn-outline-info border-2">Je modifie mon mot de passe</a>
         </div>
 
         <div class="text-info border border-2 border-danger-subtle rounded-3 bg-light my-4 p-2 shadow">
