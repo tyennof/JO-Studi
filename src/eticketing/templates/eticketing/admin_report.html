@@ -1,0 +1,12 @@
+<!-- admin_report.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Generate Sales Report</h1>
+    <p>Click the button below to generate a sales report for the Olympic ticket sales.</p>
+    <form method="get" action="{% url 'generate_sales_report' %}">
+        <button type="submit" class="btn btn-primary">Generate Report</button>
+    </form>
+</div>
+{% endblock %}

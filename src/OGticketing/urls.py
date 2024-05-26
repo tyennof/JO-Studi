@@ -7,7 +7,7 @@ from accounts.views import signup, logout_user, login_user, UpdateProfile, set_d
     UserPasswordResetDoneView, UserPasswordResetConfirmView, UserPasswordCompleteView
 from event_mgmt.views import index_event_mgmt, event_detail, add_to_cart, cart, delete_cart, \
     create_checkout_session, checkout_success, stripe_webhook, update_quantities, accueil_site, mention, cgv
-from eticketing.views import tickets, SalesByOfferView
+from eticketing.views import tickets, SalesByOfferView, admin_report_view, generate_sales_report
 
 from OGticketing import settings
 
@@ -46,5 +46,7 @@ urlpatterns = [
 
     path('tickets', tickets, name='tickets'),
     path('ventes_par_offre/', SalesByOfferView.as_view(), name='ventes-par-offre'),
+    path('report/', admin_report_view, name='admin_report_view'),
+    path('generate_sales_report/', generate_sales_report, name='generate_sales_report'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
