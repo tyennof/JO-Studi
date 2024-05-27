@@ -1,6 +1,15 @@
+from io import BytesIO
+
+import matplotlib
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
 from django.db.models import Count
+from matplotlib import pyplot as plt
+matplotlib.use('Agg')
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
 
 from eticketing.models import Eticket
 from event_mgmt.models import Event
@@ -40,6 +49,60 @@ class SalesByOfferView(ListView):
         return context
 
 
+def generate_sales_pdf(request):
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    # Calcul des ventes
+    offer_counts = Eticket.objects.values('offer').annotate(total=Count('id'))
+    total_sales = 0
+    total_revenue = 0
+    offer_sales = {'Solo': 0, 'Duo': 0, 'Familiale': 0}
+
+    for offer in offer_counts:
+        print(f"Offer: {offer['offer']}, Total: {offer['total']}")
+        if offer['offer'] == 1:
+            offer_sales['Solo'] = offer['total']
+            total_revenue += offer['total'] * 50
+        elif offer['offer'] == 2:
+            offer_sales['Duo'] = offer['total']
+            total_revenue += offer['total'] * 80
+        elif offer['offer'] == 4:
+            offer_sales['Familiale'] = offer['total']
+            total_revenue += offer['total'] * 150
+        total_sales += offer['total']
+
+    # Débogage: afficher le dictionnaire final des ventes par offre
+    print(f"Final offer_sales: {offer_sales}")
+
+    # Création du graphique
+    fig, ax = plt.subplots()
+    labels = offer_sales.keys()
+    sizes = offer_sales.values()
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+    ax.axis('equal')
+
+    # Sauvegarde du graphique dans un objet BytesIO
+    image_buffer = BytesIO()
+    plt.savefig(image_buffer, format='png')
+    plt.close(fig)
+    image_buffer.seek(0)
+    image = ImageReader(image_buffer)
+
+    # Ajout du graphique et des données au PDF
+    p.drawImage(image, 50, height - 300, width=500, height=250)
+    p.drawString(100, height - 320, f"Nombre total de ventes: {total_sales}")
+    p.drawString(100, height - 340, f"Revenu total: {total_revenue}€")
+    p.drawString(100, height - 360, f"Ventes par offre:")
+    for offer, count in offer_sales.items():
+        p.drawString(120, height - 380 - 20 * list(offer_sales.keys()).index(offer), f"{offer}: {count}")
+
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    return HttpResponse(buffer, content_type='application/pdf')
 
 
 
