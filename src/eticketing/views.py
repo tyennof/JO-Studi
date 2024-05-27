@@ -6,6 +6,8 @@ from django.shortcuts import render
 from django.views.generic import ListView
 from django.db.models import Count
 from matplotlib import pyplot as plt
+from reportlab.lib.styles import getSampleStyleSheet
+
 matplotlib.use('Agg')
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
@@ -54,6 +56,19 @@ def generate_sales_pdf(request):
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
+    # Définir les styles
+    styles = getSampleStyleSheet()
+    title_style = styles['Title']
+    normal_style = styles['Normal']
+
+    # En-tête
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(100, height - 50, "Rapport de Ventes par Offre")
+
+    # Pied de page
+    p.setFont("Helvetica", 10)
+    p.drawString(30, 30, "Rapport généré par notre système")
+
     # Calcul des ventes
     offer_counts = Eticket.objects.values('offer').annotate(total=Count('id'))
     total_sales = 0
@@ -61,20 +76,16 @@ def generate_sales_pdf(request):
     offer_sales = {'Solo': 0, 'Duo': 0, 'Familiale': 0}
 
     for offer in offer_counts:
-        print(f"Offer: {offer['offer']}, Total: {offer['total']}")
         if offer['offer'] == 1:
             offer_sales['Solo'] = offer['total']
             total_revenue += offer['total'] * 50
         elif offer['offer'] == 2:
             offer_sales['Duo'] = offer['total']
             total_revenue += offer['total'] * 80
-        elif offer['offer'] == 4:
+        elif offer['offer'] == 4:  # Mise à jour pour la valeur correcte de l'offre Familiale
             offer_sales['Familiale'] = offer['total']
             total_revenue += offer['total'] * 150
         total_sales += offer['total']
-
-    # Débogage: afficher le dictionnaire final des ventes par offre
-    print(f"Final offer_sales: {offer_sales}")
 
     # Création du graphique
     fig, ax = plt.subplots()
@@ -92,12 +103,20 @@ def generate_sales_pdf(request):
 
     # Ajout du graphique et des données au PDF
     p.drawImage(image, 50, height - 300, width=500, height=250)
+
+    # Styliser les textes
+    p.setFont("Helvetica-Bold", 12)
     p.drawString(100, height - 320, f"Nombre total de ventes: {total_sales}")
     p.drawString(100, height - 340, f"Revenu total: {total_revenue}€")
     p.drawString(100, height - 360, f"Ventes par offre:")
-    for offer, count in offer_sales.items():
-        p.drawString(120, height - 380 - 20 * list(offer_sales.keys()).index(offer), f"{offer}: {count}")
 
+    p.setFont("Helvetica", 12)
+    y_position = height - 380
+    for offer, count in offer_sales.items():
+        p.drawString(120, y_position, f"{offer}: {count}")
+        y_position -= 20
+
+    # Finaliser et sauvegarder le PDF
     p.showPage()
     p.save()
 
