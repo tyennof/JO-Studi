@@ -6,7 +6,9 @@ from django.shortcuts import render
 from django.views.generic import ListView
 from django.db.models import Count
 from matplotlib import pyplot as plt
+from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Table, TableStyle
 
 matplotlib.use('Agg')
 from reportlab.lib.pagesizes import A4
@@ -101,20 +103,38 @@ def generate_sales_pdf(request):
     image_buffer.seek(0)
     image = ImageReader(image_buffer)
 
-    # Ajout du graphique et des données au PDF
+    # Ajout du graphique au PDF
     p.drawImage(image, 50, height - 300, width=500, height=250)
 
     # Styliser les textes
     p.setFont("Helvetica-Bold", 12)
     p.drawString(100, height - 320, f"Nombre total de ventes: {total_sales}")
     p.drawString(100, height - 340, f"Revenu total: {total_revenue}€")
-    p.drawString(100, height - 360, f"Ventes par offre:")
 
-    p.setFont("Helvetica", 12)
-    y_position = height - 380
+    # Ajout des données de ventes dans un tableau
+    data = [['Offre', 'Nombre de Ventes', 'Revenu Total']]
     for offer, count in offer_sales.items():
-        p.drawString(120, y_position, f"{offer}: {count}")
-        y_position -= 20
+        if offer == 'Solo':
+            revenue = count * 50
+        elif offer == 'Duo':
+            revenue = count * 80
+        elif offer == 'Familiale':
+            revenue = count * 150
+        data.append([offer, count, revenue])
+
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    table.wrapOn(p, width, height)
+    table.drawOn(p, 50, height - 500)
 
     # Finaliser et sauvegarder le PDF
     p.showPage()
