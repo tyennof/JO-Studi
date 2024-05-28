@@ -74,7 +74,7 @@ def generate_sales_pdf(request):
 
     # Pied de page
     p.setFont("Helvetica", 10)
-    p.drawString(30, 30, "Rapport généré par notre système")
+    p.drawString(30, 30, "Rapport généré par le site 'steveparis.pythonanywhere.com'")
 
     # Calcul des ventes
     offer_counts = Eticket.objects.values('offer').annotate(total=Count('id'))
@@ -89,7 +89,7 @@ def generate_sales_pdf(request):
         elif offer['offer'] == 2:
             offer_sales['Duo'] = offer['total']
             total_revenue += offer['total'] * 80
-        elif offer['offer'] == 4:  # Mise à jour pour la valeur correcte de l'offre Familiale
+        elif offer['offer'] == 4:
             offer_sales['Familiale'] = offer['total']
             total_revenue += offer['total'] * 150
         total_sales += offer['total']
@@ -136,7 +136,7 @@ def generate_sales_pdf(request):
     # Calculer la position pour centrer le tableau
     table_width, table_height = table.wrap(0, 0)
     table_x = (width - table_width) / 2
-    table_y = height - 500  # Ajuster cette valeur si nécessaire pour éviter les chevauchements
+    table_y = height - 500
 
     table.drawOn(p, table_x, table_y)
 
