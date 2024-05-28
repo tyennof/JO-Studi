@@ -58,14 +58,19 @@ def generate_sales_pdf(request):
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
-    # Définir les styles
-    styles = getSampleStyleSheet()
-    title_style = styles['Title']
-    normal_style = styles['Normal']
+    # Calculer la position pour centrer le titre
+    title = "Rapport de ventes par offre pour la billetterie des J.O."
+    title_x = (width - p.stringWidth(title, "Helvetica-Bold", 16)) / 2
+    title_y = height - 50
 
     # En-tête
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(100, height - 50, "Rapport de Ventes par Offre")
+    p.drawString(title_x, title_y, title)
+
+    # Encadrer le titre
+    p.setStrokeColor(colors.black)
+    p.setLineWidth(1)
+    p.rect(title_x - 10, title_y - 10, p.stringWidth(title, "Helvetica-Bold", 16) + 20, 30, stroke=1, fill=0)
 
     # Pied de page
     p.setFont("Helvetica", 10)
@@ -89,80 +94,22 @@ def generate_sales_pdf(request):
             total_revenue += offer['total'] * 150
         total_sales += offer['total']
 
-    # Création du graphique en camembert
+    # Création du graphique
     fig, ax = plt.subplots()
     labels = offer_sales.keys()
     sizes = offer_sales.values()
     ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
     ax.axis('equal')
 
-    # Sauvegarde du graphique en camembert dans un objet BytesIO
-    pie_image_buffer = BytesIO()
-    plt.savefig(pie_image_buffer, format='png')
+    # Sauvegarde du graphique dans un objet BytesIO
+    image_buffer = BytesIO()
+    plt.savefig(image_buffer, format='png')
     plt.close(fig)
-    pie_image_buffer.seek(0)
-    pie_image = ImageReader(pie_image_buffer)
+    image_buffer.seek(0)
+    image = ImageReader(image_buffer)
 
-    # Création du graphique à barres
-    fig, ax = plt.subplots()
-    ax.bar(labels, sizes, color=['blue', 'orange', 'green'])
-    ax.set_ylabel('Nombre de ventes')
-    ax.set_title('Ventes par offre')
-
-    # Sauvegarde du graphique à barres dans un objet BytesIO
-    bar_image_buffer = BytesIO()
-    plt.savefig(bar_image_buffer, format='png')
-    plt.close(fig)
-    bar_image_buffer.seek(0)
-    bar_image = ImageReader(bar_image_buffer)
-
-    # Extraction des données de vente par date pour chaque offre
-    sales_by_date = Eticket.objects.values('event__eventDateHour', 'offer').annotate(total=Count('id')).order_by(
-        'event__eventDateHour')
-    dates = sorted(set(item['event__eventDateHour'] for item in sales_by_date))
-    solo_sales = [0] * len(dates)
-    duo_sales = [0] * len(dates)
-    familiale_sales = [0] * len(dates)
-
-    for sale in sales_by_date:
-        index = dates.index(sale['event__eventDateHour'])
-        if sale['offer'] == 1:
-            solo_sales[index] += sale['total']
-        elif sale['offer'] == 2:
-            duo_sales[index] += sale['total']
-        elif sale['offer'] == 4:
-            familiale_sales[index] += sale['total']
-
-    # Création du graphique linéaire
-    fig, ax = plt.subplots()
-    ax.plot(dates, solo_sales, label='Solo')
-    ax.plot(dates, duo_sales, label='Duo')
-    ax.plot(dates, familiale_sales, label='Familiale')
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Nombre de ventes')
-    ax.set_title('Tendances de vente au fil du temps')
-    ax.legend()
-
-    # Sauvegarde du graphique linéaire dans un objet BytesIO
-    line_image_buffer = BytesIO()
-    plt.savefig(line_image_buffer, format='png')
-    plt.close(fig)
-    line_image_buffer.seek(0)
-    line_image = ImageReader(line_image_buffer)
-
-    # Ajout du graphique en camembert au PDF
-    p.drawImage(pie_image, 50, height - 300, width=500, height=250)
-
-    # Ajout du graphique à barres au PDF
-    p.drawImage(bar_image, 50, height - 600, width=500, height=250)
-
-    # Ajout du graphique linéaire au PDF
-    p.drawImage(line_image, 50, height - 900, width=500, height=250)
-
-    # Styliser les textes
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(100, height - 320, f"Nombre total de ventes: {total_sales}")
-    p.drawString(100, height - 340, f"Revenu total: {total_revenue}€")
+    # Ajout du graphique au PDF avec une position ajustée
+    p.drawImage(image, 50, height - 350, width=500, height=250)
 
     # Ajout des données de ventes dans un tableau
     data = [['Offre', 'Nombre de Ventes', 'Revenu Total']]
@@ -186,30 +133,21 @@ def generate_sales_pdf(request):
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]))
 
-    table.wrapOn(p, width, height)
-    table.drawOn(p, 50, height - 1100)
+    # Calculer la position pour centrer le tableau
+    table_width, table_height = table.wrap(0, 0)
+    table_x = (width - table_width) / 2
+    table_y = height - 500  # Ajuster cette valeur si nécessaire pour éviter les chevauchements
 
-    # Ajout des données de ventes par événement dans un tableau
-    event_sales_data = Eticket.objects.values('event__eventName', 'offer').annotate(total=Count('id')).order_by(
-        'event__eventName', 'offer')
-    event_data = [['Événement', 'Offre', 'Nombre de Ventes']]
-    for event in event_sales_data:
-        offer_name = 'Solo' if event['offer'] == 1 else 'Duo' if event['offer'] == 2 else 'Familiale'
-        event_data.append([event['event__eventName'], offer_name, event['total']])
+    table.drawOn(p, table_x, table_y)
 
-    event_table = Table(event_data)
-    event_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-    ]))
-
-    event_table.wrapOn(p, width, height)
-    event_table.drawOn(p, 50, height - 1300)
+    # Styliser les textes pour le bas de la page
+    p.setFont("Helvetica-Bold", 18)
+    sales_text = f"Nombre total de ventes: {total_sales}"
+    revenue_text = f"Revenu total: {total_revenue}€"
+    sales_text_x = (width - p.stringWidth(sales_text, "Helvetica-Bold", 18)) / 2
+    revenue_text_x = (width - p.stringWidth(revenue_text, "Helvetica-Bold", 18)) / 2
+    p.drawString(sales_text_x, 200, sales_text)
+    p.drawString(revenue_text_x, 160, revenue_text)
 
     # Finaliser et sauvegarder le PDF
     p.showPage()
@@ -217,6 +155,9 @@ def generate_sales_pdf(request):
 
     buffer.seek(0)
     return HttpResponse(buffer, content_type='application/pdf')
+
+
+
 
 
 
