@@ -7,7 +7,6 @@ from django.views.generic import ListView
 from django.db.models import Count
 from matplotlib import pyplot as plt
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Table, TableStyle
 
 matplotlib.use('Agg')

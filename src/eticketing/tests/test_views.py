@@ -1,8 +1,13 @@
+from io import BytesIO
+from unittest.mock import patch, MagicMock
+
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import now
+
 
 from accounts.models import CustomUser
 from eticketing.models import Eticket
@@ -100,5 +105,4 @@ class SalesByOfferViewTest(TestCase):
         event_sales_data = response.context['event_sales_data']
         self.assertEqual(event_sales_data[0]['offers'][0]['total'], 2)  # pour l'offre 1 de event1
         self.assertEqual(event_sales_data[0]['offers'][1]['total'], 1)  # pour l'offre 2 de event1
-
 
