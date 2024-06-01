@@ -61,6 +61,7 @@ class SalesByOfferView(UserPassesTestMixin, ListView):
         # Redirige vers la page de connexion si l'utilisateur n'est pas autorisé
         return redirect('login')
 
+
 @staff_member_required
 def generate_sales_pdf(request):
     buffer = BytesIO()
