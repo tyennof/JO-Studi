@@ -4,7 +4,7 @@ import matplotlib
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import ListView
 from django.db.models import Count
 from matplotlib import pyplot as plt
@@ -53,6 +53,13 @@ class SalesByOfferView(UserPassesTestMixin, ListView):
         context['event_sales_data'] = event_sales_data # Ajout de la liste complète des données de vente au contexte
         return context
 
+    def test_func(self):
+        # Vérifie si l'utilisateur est un administrateur
+        return self.request.user.is_staff
+
+    def handle_no_permission(self):
+        # Redirige vers la page de connexion si l'utilisateur n'est pas autorisé
+        return redirect('login')
 
 @staff_member_required
 def generate_sales_pdf(request):
