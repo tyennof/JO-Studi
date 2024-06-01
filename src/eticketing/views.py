@@ -1,6 +1,8 @@
 from io import BytesIO
 
 import matplotlib
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
@@ -25,7 +27,7 @@ def tickets(request):
     return render(request, 'eticketing/tickets.html', context={"tickets": tickets})
 
 
-class SalesByOfferView(ListView):
+class SalesByOfferView(UserPassesTestMixin, ListView):
     # Configuration de base de la vue
     model = Event # Spécifie le modèle de données à utiliser
     template_name = 'eticketing/vue_vente.html'
@@ -52,6 +54,7 @@ class SalesByOfferView(ListView):
         return context
 
 
+@staff_member_required
 def generate_sales_pdf(request):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
