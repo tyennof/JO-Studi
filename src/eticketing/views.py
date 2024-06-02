@@ -69,7 +69,7 @@ def generate_sales_pdf(request):
     width, height = A4
 
     # Calculer la position pour centrer le titre
-    title = "Rapport de ventes par offre pour la billetterie des J.O."
+    title = "Rapport de ventes pour la billetterie des J.O."
     title_x = (width - p.stringWidth(title, "Helvetica-Bold", 16)) / 2
     title_y = height - 50
 
