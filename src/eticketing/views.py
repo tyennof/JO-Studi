@@ -31,7 +31,8 @@ class SalesByOfferView(UserPassesTestMixin, ListView):
     # Configuration de base de la vue
     model = Event # Spécifie le modèle de données à utiliser
     template_name = 'eticketing/vue_vente.html'
-    context_object_name = 'event_list' # Nom de la variable contexte à utiliser dans le template
+    # Nom de la variable contexte à utiliser dans le template
+    context_object_name = 'event_list'
 
     def get_queryset(self):
         # Méthode qui récupère les données à afficher par la vue
@@ -58,7 +59,7 @@ class SalesByOfferView(UserPassesTestMixin, ListView):
         return self.request.user.is_staff
 
     def handle_no_permission(self):
-        # Redirige vers la page de connexion si l'utilisateur n'est pas autorisé
+        # Redirige vers page de connexion si l'user non autorisé
         return redirect('login')
 
 
