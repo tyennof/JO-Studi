@@ -142,7 +142,7 @@ class GenerateSalesPdfViewTests(TestCase):
         page = pdf.pages[0]
         text = page.extract_text()
 
-        # Vérifier la présence des données correctes
+        # Vérifier la présence des données
         self.assertIn("Rapport de ventes par offre pour la billetterie des J.O.", text)
         self.assertIn("Solo", text)
         self.assertIn("Duo", text)
