@@ -1,3 +1,5 @@
+from io import BytesIO
+from PyPDF2 import PdfReader
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -102,3 +104,56 @@ class SalesByOfferViewTest(TestCase):
         self.assertEqual(event_sales_data[0]['offers'][1]['total'], 1)  # pour l'offre 2 de event1
 
 
+class GenerateSalesPdfViewTests(TestCase):
+    def setUp(self):
+        # Utiliser le modèle utilisateur personnalisé
+        User = get_user_model()
+
+        # Créer un utilisateur administrateur
+        self.admin_user = User.objects.create_superuser(email='admin@example.com', password='password')
+        self.client.login(email='admin@example.com', password='password')
+
+        # Créer un utilisateur régulier pour les tickets
+        self.user = User.objects.create_user(email='user@example.com', password='password')
+
+        # Créer des événements
+        self.event1 = Event.objects.create(eventName='Event 1')
+        self.event2 = Event.objects.create(eventName='Event 2')
+
+        # Créer des tickets pour les événements
+        Eticket.objects.create(event=self.event1, offer=1, user=self.user)
+        Eticket.objects.create(event=self.event1, offer=2, user=self.user)
+        Eticket.objects.create(event=self.event2, offer=4, user=self.user)
+
+    def test_generate_sales_pdf_access(self):
+        response = self.client.get(reverse('generate_sales_pdf'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+
+    def test_generate_sales_pdf_data(self):
+        response = self.client.get(reverse('generate_sales_pdf'))
+
+        # Vérifier que le PDF est bien généré
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+
+        # Extraire le contenu du PDF pour vérifier les données
+        pdf = PdfReader(BytesIO(response.content))
+        page = pdf.pages[0]
+        text = page.extract_text()
+
+        # Vérifier la présence des données
+        self.assertIn("Rapport de ventes par offre pour la billetterie des J.O.", text)
+        self.assertIn("Solo", text)
+        self.assertIn("Duo", text)
+        self.assertIn("Familiale", text)
+        self.assertIn("Nombre total de ventes", text)
+        self.assertIn("Revenu total", text)
+
+        # Vérifier que les nombres de ventes et revenus sont corrects
+        self.assertIn("1", text)  # Pour l'offre Solo
+        self.assertIn("1", text)  # Pour l'offre Duo
+        self.assertIn("1", text)  # Pour l'offre Familiale
+        self.assertIn("50", text)  # Revenu pour l'offre Solo
+        self.assertIn("80", text)  # Revenu pour l'offre Duo
+        self.assertIn("150", text)  # Revenu pour l'offre Familiale
